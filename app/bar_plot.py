@@ -4,7 +4,10 @@ import plotly.express as px
 import streamlit as st    
 import numpy as np
 import pathlib
- 
+from tkinter import filedialog 
+import tkinter as tk
+
+
 # Page d'accueil + instructions
 def main_page_load_data():  
     st.title(":bar_chart: Gene PCR graph generator")
@@ -12,12 +15,12 @@ def main_page_load_data():
     main_container,espace,description_container = st.columns([2,0.5,2])
         
     with main_container: 
-        st.header('Choose your source file ')        
-        excel_file = st.file_uploader('Select a excel file', type=['xlsx','csv'], accept_multiple_files=False)
+        st.header('Select your source file ')        
+        excel_file = st.file_uploader('Select a excel or csv file', type=['xlsx','csv'], accept_multiple_files=False)
         if excel_file != None:
             st.session_state['excel_path'] = excel_file
                         
-        st.info("Your file has to be an '.xlsx' (excel file)") 
+        st.info("Your file has to be an '.xlsx' or '.csv' (excel file)") 
         
         graph_choose = st.radio("Choose your way to generate your graph :", ['One plot','Multiple plot','Cinetic plot', 'Custom plot'],horizontal=True)
         st.session_state['graph_choose'] = graph_choose
@@ -29,7 +32,7 @@ def main_page_load_data():
 
     with description_container:
         st.header('Source file - must have :') 
-        st.text('If you choose one plot-multiple plot, the source file has to have :\n - Gene, condition, QRm')
+        st.text('If you choose one plot or multiple plot, the source file has to have :\n - Gene, Condition, QRm')
         st.text('If you choose Cinetic plot, your source file has to have : \n -Probe, Condition, Time ')
 
 # Custumize one bar plot (bar group or no)
@@ -41,13 +44,13 @@ def bar_graph_plot():
     with main_container:   
         left_column, right_column  = st.columns([1,2])
 
-        left_column.subheader("Settings :")
-        st.session_state['title_file'] = left_column.text_input(label='Enter title of your graph :', value='Title', placeholder='Type your title of your graph')     
+        left_column.subheader("Graph settings :")
+        st.session_state['title_file'] = left_column.text_input(label='Enter the title of your graph :', value='my title', placeholder='Type your title of your graph')     
 
-        st.session_state['graph_error'] = left_column.radio("Error y :", ['QRe',None],horizontal=True, key='te')
+        dic_error_y = {'QRe':'Yes', None:'No'}
+        st.session_state['graph_error'] = left_column.radio("Show the error bar y (QRe):", [None,'QRe'], format_func=lambda x: dic_error_y.get(x),horizontal=True, key='te')
 
-        option_dic = {None : 'Simple','group' : 'Group'} 
-        
+        option_dic = {None : 'Simple','group' : 'Group'}         
         st.session_state['bar_type'] = left_column.radio(label="Type of bar chart:", options=[None,'group'],format_func=lambda x: option_dic.get(x),horizontal=True) 
 
         setting_test_stat(left_column, df_selection)
@@ -55,8 +58,7 @@ def bar_graph_plot():
         left_column.button('Refresh plot')
 
         setting_save_plot(left_column)  
-        
-        return_home(left_column)
+         
         #-----[BAR CHART] ------
         text_auto = False if len(st.session_state['selected_gene']) < 11 else ".2s"
         fig_bar_plot = px.bar(
@@ -88,14 +90,14 @@ def bar_multiplot_graph():
     with main_container:   
         left_column, right_column  = st.columns([1,2])
 
-        left_column.subheader("Settings :")
-        st.session_state['title_file'] = left_column.text_input(label='Enter title of your graph :', value='Title', placeholder='Type your title of your graph')
+        left_column.subheader("Graph settings :")
+        st.session_state['title_file'] = left_column.text_input(label='Enter the title of your graph :', value='my title', placeholder='Type your title of your graph')     
 
-        st.session_state['graph_error'] = left_column.radio("Error y :", ['QRe',None],horizontal=True, key='te')
+        dic_error_y = {'QRe':'Yes', None:'No'}
+        st.session_state['graph_error'] = left_column.radio("Show the error bar y (QRe):", [None,'QRe'], format_func=lambda x: dic_error_y.get(x),horizontal=True, key='te')
 
         setting_save_plot(left_column, number="multiple")  
-        
-        return_home(left_column)
+         
         try:
             st.session_state['text_auto'] = False if len(st.session_state['selected_gene']) < 10 else ".2s"
             #-----MULTIBAR CHARTS-----
@@ -134,8 +136,7 @@ def plot_cinetic_graph():
         st.session_state['title_file'] = left_column.text_input(label='Enter title of your graph :', value='Title', placeholder='Type your title of your graph')
 
         setting_save_plot(left_column)  
-
-        return_home(left_column)
+ 
         
         try: 
             fig = px.line(
@@ -213,8 +214,7 @@ def custom_graph_col():
         graph_choose = left_column.radio("Plot graph :", ['Bar chart','Line chart'],horizontal=True)
 
         setting_save_plot(left_column)
-
-        return_home(left_column)
+ 
         try:
             #-----MULTIBAR CHARTS-----
             if graph_choose == 'Bar chart':
@@ -241,7 +241,6 @@ def custom_graph_col():
             st.session_state['fig_save'] = fig_multiple_graph
         except Exception:
             right_column.text('Select data to see your graphs')       
-
 
 # load df with pandas, must be an excel file and check condition for the type of plot
 def load_data_frame():
@@ -271,26 +270,29 @@ def load_data_frame():
 
 # Setting to save your plot(name, directory and info message)
 def setting_save_plot(container:st.container,number=''):
-    container.markdown('----')
-    container.subheader('Setting for saving plot :')
-    st.session_state['name_file'] = container.text_input(label='Enter the graph name of your file :', value='File name', placeholder='Type your file name of your graph')
+    container.markdown('---')
+    container.subheader('Saving settings :')
+    st.session_state['name_file'] = container.text_input(label='Enter a file name for your graph :', value='my file name', placeholder='file name')
+    container.button('Select directory', on_click=choose_dir)
+    if 'save_dir' not in st.session_state or st.session_state['save_dir'] == '':
+        st.session_state['disabled'] = True
+    else:
+        st.session_state['disabled'] = False
+        container.write(f"path : {st.session_state['save_dir']}") 
     if number == 'multiple': 
-        container.text("File name is used only if you choose \n'All gene in one file'")  
-        container.text("If you choos 'Each gene in separete files',\n the title and file name will be the gene name")  
         option_dic = {
             'one' : 'All gene in one file',
-            'multiple' : 'Each gene in separete files'
+            'multiple' : 'Each gene in separate files'
         } 
-        save_settings = container.radio("How do you want to save this graph ? :", ['one','multiple'], format_func=lambda x: option_dic.get(x),horizontal=True, key=22)
-        st.session_state['save_settings']= save_settings        
-
-    container.button(label='Download Graph png', on_click=lambda :generate_png(container)) 
-
+        save_settings = container.radio("Way to save graph :", ['one','multiple'], format_func=lambda x: option_dic.get(x),horizontal=True, key=22)
+        container.write("The file name is used only when 'All gene in one file' is selected.")
+        container.write("If you select 'Each gene in separate files', the title and file name will be the gene name")  
+        st.session_state['save_settings']= save_settings  
+         
+    container.button(label='Generare Graph (png)', on_click=lambda :generate_png(container), disabled=st.session_state['disabled'])
     if 'plot_generate' in st.session_state:
         container.info(st.session_state['plot_generate']) 
         
-
-
 def return_home(container):
     container.markdown('---')        
     if btn_home := container.button('Back home'):
@@ -299,24 +301,22 @@ def return_home(container):
         
 # Generate the graph into png
 def generate_png(container):
-    # create repertory who does not exist
-    def create_dir(): 
-        path = r"\\10.0.2.1\Metier-Recherche_Dev\a ranger\Test julien" 
+    def create_dir(path): 
         if not os.path.exists(path):
             os.mkdir(path)
+            return path
+        else:
+            n = 1
+            while os.path.exists(f"{path}{n}"):
+                n +=1
+            os.mkdir(f"{path}{n}") 
+            return (f"{path}{n}")
             
-        n = 1
-        while os.path.exists(f"{path}/plot{n}"):
-            n +=1
-        st.session_state['dir_path'] = f"{path}/plot{n}"
-        os.mkdir(st.session_state['dir_path']) 
-
-    
-    # save plot into png in the directory
-    def save_image(fig_plot):
-        path = st.session_state['dir_path'] 
+    # save plot into png in the directory  
+    def save_image(fig_plot, name, multiple=False):  
+        path = st.session_state['path_multiple_image'] if multiple else st.session_state['save_dir']         
         try: 
-            fig_plot.write_image(f"{path}/{name_file}.png")
+            fig_plot.write_image(f"{path}/{name}.png")
         except Exception:
             st.session_state['plot_generate'] = "Generation failed"
         else:
@@ -324,17 +324,16 @@ def generate_png(container):
                 st.session_state['nb_plots_generated'] = 1
             else:
                 st.session_state['nb_plots_generated'] +=1
-            st.session_state['plot_generate'] = f"Success : {st.session_state['nb_plots_generated']}  plot(s) generated ! \n Plot is here : \\{st.session_state['dir_path']}"
-            
+            st.session_state['plot_generate'] = f"Success : {st.session_state['nb_plots_generated']}  plot(s) generated ! \n Plot is here : {path}"
     
-    # initialise repertory save
-    if 'dir_path' not in st.session_state:
-        create_dir()
-
+    #plot graph for each gene selected       
     if  ('save_settings' in st.session_state) and (st.session_state['save_settings'] == 'multiple'):
-        df = st.session_state['df_selection']
-
-        genes = df['Gene'].unique()
+        df = st.session_state['df_selection']        
+        genes = df['Gene'].unique()        
+        path = st.session_state['save_dir']
+        path += "\images"
+        st.session_state['path_multiple_image'] = create_dir(path=path) 
+        
         for i in genes:
             temp_fig = px.bar(
                     df[df['Gene'] == i],
@@ -347,29 +346,30 @@ def generate_png(container):
                     template=st.session_state['template'],                    
                 ) 
             add_label_and_test_stat(temp_fig,df[df['Gene'] == i], 'multiple')
-            name_file = i
-            save_image(temp_fig)
+            save_image(fig_plot=temp_fig, name=i, multiple=True)
+    #plot one graph
     else:
         if 'fig_save' not in st.session_state:
             st.session_state['plot_generate'] = 'No graph, no download'
             return
 
         fig = st.session_state['fig_save']
-        if st.session_state['name_file'] != '':
-            name_file = st.session_state['name_file']
-            path = st.session_state['dir_path']  
+        if st.session_state['name_file'] != '' and ('save_dir' in st.session_state):
+            name_file = st.session_state['name_file']            
+            path = st.session_state['save_dir']
+            
             if os.path.exists(f"{path}/{name_file}.png"): 
-                st.error('The graph exist, change name file or confirm for overwrite the file')
-                overwrite = st.button(label='Overwrite', on_click=lambda :save_image(fig))
-                cancel = st.button(label='Cancel')                     
+                st.session_state['plot_generate'] = 'A graph with the same name already exist, confirm for overwriting or cancel and change the file name'
+                overwrite = container.button(label='Overwrite', on_click=lambda :save_image(fig_plot=fig, name=name_file))
+                cancel = container.button(label='Cancel')                                  
                 if cancel:
                     del overwrite
                     del cancel
                     return
             else:
-                save_image(fig)    
+                save_image(fig_plot=fig, name=name_file)    
         else:
-            st.session_state['plot_generate'] = 'Missing name file'  
+            st.session_state['plot_generate'] = 'Missing file name'  
 
 # Commum sidebar settings
 def sidebar_settings(select1,select2) -> pd.DataFrame:
@@ -383,18 +383,18 @@ def sidebar_settings(select1,select2) -> pd.DataFrame:
 
     if step == 1 and ('bar_type' not in st.session_state or st.session_state['bar_type'] is None) or step == 3:   
         selected_gene = st.sidebar.selectbox(
-            f"Select the {select1}:",
+            f"Select a {select1}:",
             options=df[select1].unique(),
             )
     elif all_gene := st.sidebar.checkbox("Select all", key=1):
         selected_gene = sidebar_container.multiselect(
-            f"Select One or more {select1}:",        
+            f"Select one or more {select1}:",        
             options=df[select1].unique(),
             default=df[select1].unique()[:]
             )
     else:
         selected_gene = sidebar_container.multiselect(
-            f"Select One or more {select1}:",        
+            f"Select one or more {select1}:",        
             options=df[select1].unique()
             )
     st.session_state['selected_gene'] = selected_gene 
@@ -403,13 +403,13 @@ def sidebar_settings(select1,select2) -> pd.DataFrame:
     sidebar_container = st.sidebar.container()
     if all_condition := st.sidebar.checkbox("Select all", key=2):
         selected_condition_type = sidebar_container.multiselect(
-        f"Select the {select2}:",
+        f"Select one or more {select2}:",
         options=df[select2].unique(),
         default=df[select2].unique()[:],
         )
     else:
         selected_condition_type = sidebar_container.multiselect(
-        f"Select the {select2}:",
+        f"Select one or more {select2}:",
         options=df[select2].unique(),
         )
     st.session_state['selected_condition'] = selected_condition_type 
@@ -419,19 +419,20 @@ def sidebar_settings(select1,select2) -> pd.DataFrame:
          'ygridoff', 'gridon', 'none']
     sidebar_container = st.sidebar.container()
     selected_template = sidebar_container.selectbox(
-        "Select the template:",
+        "Select a template:",
         options=template_options,
     )
     st.session_state['template'] = selected_template
 
     df_selection = df.query(f"{select1} == @selected_gene and {select2} == @selected_condition_type")
     st.session_state['df_selection'] = df_selection    
-    
+     
+    return_home(sidebar_container)
     sidebar_container.markdown('#')
     return df_selection
 
 def setting_test_stat(container,df):
-    st.session_state['test_stats'] = container.radio(label="Statistic test :", options=['No','Yes (+)', 'Yes (+ and ★)'],horizontal=True) 
+    st.session_state['test_stats'] = container.radio(label="Show statistic test :", options=['No','Yes (+)', 'Yes (+ and ★)'],horizontal=True) 
     if st.session_state['test_stats'] != 'No':
         st.session_state['col_test_stat_pos'] = container.selectbox("Choose the column for the test stats positive (+) :",options=df.columns,index=len(df.columns)-1) 
                 
@@ -442,7 +443,6 @@ def setting_test_stat(container,df):
             
         if 'error_test_stat' in st.session_state and st.session_state['error_test_stat'] != '':
             container.error(st.session_state['error_test_stat'])
-
 
 def add_label_and_test_stat(fig,df, multiple=''):
     def annot(text,y_height, fig, col_stats):
@@ -614,4 +614,9 @@ def add_label_and_test_stat(fig,df, multiple=''):
                     y=i + j + 0.2,
                     showarrow=False)
                 k+=1
- 
+
+def choose_dir(): 
+    root = tk.Tk()
+    root.withdraw() 
+    root.wm_attributes('-topmost', 1)  
+    st.session_state['save_dir'] = filedialog.askdirectory(master = root) 
