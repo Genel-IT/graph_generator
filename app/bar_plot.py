@@ -74,8 +74,8 @@ def bar_graph_plot():
             text_auto=text_auto
         )
         
-        # if len(st.session_state['selected_gene']) < 11:
-        add_label_and_test_stat(fig_bar_plot, df_selection)
+        if len(st.session_state['selected_gene']) < 11:
+            add_label_and_test_stat(fig_bar_plot, df_selection)
 
         fig_bar_plot.update_layout(xaxis=(dict(showgrid=True)))
         right_column.plotly_chart(fig_bar_plot, use_container_width=True)
@@ -99,7 +99,7 @@ def bar_multiplot_graph():
         setting_save_plot(left_column, number="multiple")  
          
         try:
-            st.session_state['text_auto'] = False if len(st.session_state['selected_gene']) < 10 else ".2s"
+            st.session_state['text_auto'] = False if len(st.session_state['selected_gene']) < 5 else ".2s"
             #-----MULTIBAR CHARTS-----
             fig_multiple_graph = px.bar(
                 df_selection, 
@@ -114,7 +114,7 @@ def bar_multiplot_graph():
                 text_auto=st.session_state['text_auto'],
                 )
             
-            if len(st.session_state['selected_gene']) < 10:
+            if len(st.session_state['selected_gene']) < 5:
                 add_label_and_test_stat(fig_multiple_graph, df_selection)
                 
             fig_multiple_graph.update_layout(xaxis=(dict(showgrid=True)))
@@ -136,8 +136,7 @@ def plot_cinetic_graph():
         st.session_state['title_file'] = left_column.text_input(label='Enter title of your graph :', value='Title', placeholder='Type your title of your graph')
 
         setting_save_plot(left_column)  
- 
-        
+                
         try: 
             fig = px.line(
                 df_selection,
@@ -149,8 +148,7 @@ def plot_cinetic_graph():
                 )
             
             fig.update_layout(xaxis=(dict(showgrid=True)))
-            right_column.plotly_chart(fig, use_container_width=False)
-            
+            right_column.plotly_chart(fig, use_container_width=False)            
             st.session_state['fig_save'] = fig
         except Exception:
             right_column.text('Select data to see your graphs') 
@@ -204,6 +202,7 @@ def custom_graph_col():
     
     st.session_state['template'] = selected_template
 
+    return_home(sidebar_container._parent) 
     # ---- MAINPAGE ----
     main_container = st.container()
     with main_container:   
@@ -298,6 +297,7 @@ def return_home(container):
     if btn_home := container.button('Back home'):
         st.session_state['step'] = 0
         st.experimental_rerun()
+    container.markdown('#')        
         
 # Generate the graph into png
 def generate_png(container):
@@ -427,8 +427,7 @@ def sidebar_settings(select1,select2) -> pd.DataFrame:
     df_selection = df.query(f"{select1} == @selected_gene and {select2} == @selected_condition_type")
     st.session_state['df_selection'] = df_selection    
      
-    return_home(sidebar_container)
-    sidebar_container.markdown('#')
+    return_home(sidebar_container) 
     return df_selection
 
 def setting_test_stat(container,df):
