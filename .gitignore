@@ -31,7 +31,6 @@ MANIFEST
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
-*.spec
 
 # Installer logs
 pip-log.txt
@@ -124,59 +123,3 @@ venv.bak/
 .mypy_cache/
 .dmypy.json
 dmypy.json
-
-# Pyre type checker
-.pyre/
-run_main.py
-.streamlit/config.tolm
-hooks/hook-streamlit.py
-myenv/pyvenv.cfg
-myenv/etc/jupyter/nbconfig/notebook.d/jupyterlab-plotly.json
-myenv/etc/jupyter/nbconfig/notebook.d/pydeck.json
-myenv/Scripts/activate
-myenv/Scripts/activate.bat
-myenv/Scripts/Activate.ps1
-myenv/Scripts/cmark.exe
-myenv/Scripts/deactivate.bat
-myenv/Scripts/f2py.exe
-myenv/Scripts/futurize-script.py
-myenv/Scripts/futurize.exe
-myenv/Scripts/jsonschema.exe
-myenv/Scripts/normalizer.exe
-myenv/Scripts/pasteurize-script.py
-myenv/Scripts/pasteurize.exe
-myenv/Scripts/pip.exe
-myenv/Scripts/pip3.9.exe
-myenv/Scripts/pip3.10.exe
-myenv/Scripts/pip3.exe
-myenv/Scripts/plasma_store.exe
-myenv/Scripts/pygmentize.exe
-myenv/Scripts/pyi-archive_viewer.exe
-myenv/Scripts/pyi-bindepend.exe
-myenv/Scripts/pyi-grab_version.exe
-myenv/Scripts/pyi-makespec.exe
-myenv/Scripts/pyi-set_version.exe
-myenv/Scripts/pyinstaller.exe
-myenv/Scripts/pysemver.exe
-myenv/Scripts/python.exe
-myenv/Scripts/pythonw.exe
-myenv/Scripts/streamlit.cmd
-myenv/Scripts/streamlit.exe
-myenv/Scripts/watchmedo.exe
-myenv/share/jupyter/labextensions/jupyterlab-plotly/package.json
-myenv/share/jupyter/labextensions/jupyterlab-plotly/static/133.abf92d63193737cdd014.js
-myenv/share/jupyter/labextensions/jupyterlab-plotly/static/423.13b35dff1663e01b2912.js
-myenv/share/jupyter/labextensions/jupyterlab-plotly/static/478.f9a7116e09cbfb956212.js
-myenv/share/jupyter/labextensions/jupyterlab-plotly/static/478.f9a7116e09cbfb956212.js.LICENSE.txt
-myenv/share/jupyter/labextensions/jupyterlab-plotly/static/486.52aa9063b291ec574154.js
-myenv/share/jupyter/labextensions/jupyterlab-plotly/static/486.52aa9063b291ec574154.js.LICENSE.txt
-myenv/share/jupyter/labextensions/jupyterlab-plotly/static/657.b1d403059aa76281aea1.js
-myenv/share/jupyter/labextensions/jupyterlab-plotly/static/879.799d701fea3e64d178cf.js
-myenv/share/jupyter/labextensions/jupyterlab-plotly/static/remoteEntry.66500334d7b36213676e.js
-myenv/share/jupyter/labextensions/jupyterlab-plotly/static/style.js
-myenv/share/jupyter/nbextensions/jupyterlab-plotly/extension.js
-myenv/share/jupyter/nbextensions/jupyterlab-plotly/index.js
-myenv/share/jupyter/nbextensions/jupyterlab-plotly/index.js.LICENSE.txt
-myenv/share/jupyter/nbextensions/pydeck/extensionRequires.js
-myenv/share/jupyter/nbextensions/pydeck/index.js
-myenv/share/jupyter/nbextensions/pydeck/index.js.map
