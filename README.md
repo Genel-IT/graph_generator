@@ -6,7 +6,10 @@ In order to build the application several things must be done:
 * Add the streamlit.static module to the datas of the application (in spec file)
 * Add the main.py script to the datas AND hidden import of the spec file. (In the data for streamlit to find it, in the imports to be sure that all necessary module are found by pyinstaller).
 * A template spec file can be obtained from the command: pyi-makespec GenGraph.py
-
+(
+    "./env/Lib/site-packages/altair/vegalite/v4/schema/vega-lite-schema.json",
+    "./altair/vegalite/v4/schema/"
+),
 
 
 To build the application:
