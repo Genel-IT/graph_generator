@@ -1,4 +1,4 @@
-from app import bar_plot
+from app import plot_settings
 import streamlit as st
 
 st.set_page_config(page_title="Sales Dashboard", page_icon=":bar_chart:", layout="wide")
@@ -8,15 +8,15 @@ if 'step' not in st.session_state:
 
 step = st.session_state['step']
 if step == 0:
-    bar_plot.main_page_load_data() 
+    plot_settings.main_page_load_data() 
 elif step == 1:
-    bar_plot.bar_graph_plot() 
+    plot_settings.bar_graph_plot() 
 elif step == 2:
-    bar_plot.bar_multiplot_graph()
+    plot_settings.bar_multiplot_graph()
 elif step == 3:
-    bar_plot.plot_cinetic_graph()
+    plot_settings.plot_cinetic_graph()
 elif step == 4:
-    bar_plot.custom_graph_col()
+    plot_settings.custom_graph_col()
 
 # ---- HIDE STREAMLIT STYLE ----
 hide_st_style = """
