@@ -67,12 +67,12 @@ def graph_settings_option(container, graph_type):
 # Show the setting for the statitical test
 def setting_test_stat(container):
     df = st.session_state['df_selection']
-    st.session_state['test_stats'] = container.radio(label="Show statistic test :", options=['No','Yes +', 'Yes +/★'],horizontal=True) 
+    st.session_state['test_stats'] = container.radio(label="Show statistic test :", options=['No','Yes ★', 'Yes ★/+'],horizontal=True) 
     if st.session_state['test_stats'] != 'No':
-        st.session_state['col_test_stat_pos'] = container.selectbox("Choose the column for the test stats positive (+) :",options=df.columns,index=len(df.columns)-1) 
+        st.session_state['col_test_stat_pos'] = container.selectbox("Choose the column for the test stats positive (★) :",options=df.columns,index=len(df.columns)-1) 
                 
-        if st.session_state['test_stats'] == 'Yes +/★':                                       
-            st.session_state['col_test_stat_neg'] = container.selectbox("Choose the column for the test stats negative (★) : ",options=df.columns,index=len(df.columns)-1)   
+        if st.session_state['test_stats'] == 'Yes ★/+':                                       
+            st.session_state['col_test_stat_neg'] = container.selectbox("Choose the column for the test stats negative (+) : ",options=df.columns,index=len(df.columns)-1)   
         else:
             st.session_state['col_test_stat_neg'] = 'None'         
             
@@ -278,16 +278,28 @@ def add_label_and_test_stat(fig, df):
 
     def annot_one_bar_simple(text,y_height,font_size, col_stats): 
         df[col_stats] = df[st.session_state[col_stats]].fillna(1).map(significance) 
-        for _, s in df.iterrows():           
-            fig.add_annotation(text=text * s[col_stats],font=dict(size=font_size),
+        for _, s in df.iterrows():
+            if s[col_stats] == -1:
+                text_1 = text 
+                color = "#FF0000"   
+            else:
+                text_1 = text * s[col_stats]
+                color = "#000000"   
+            fig.add_annotation(text=text_1,font=dict(size=font_size,color = color),
                 x=s['condi_test'], y=s['QRm'] + s['QRe'] + y_height,showarrow=False)
             
 
     def annot_one_bar_group(text,y_height,font_size,col_stats): 
         df[col_stats] = df[st.session_state[col_stats]].fillna(1).map(significance)
         # dic_param = get_params(nb_gene)            
-        for _, s in df.iterrows():           
-            fig.add_annotation(text=text * s[col_stats],font=dict(size=font_size),
+        for _, s in df.iterrows():    
+            if s[col_stats] == -1:
+                text_1 = text 
+                color = "#FF0000"   
+            else:
+                text_1 = text * s[col_stats]
+                color = "#000000"          
+            fig.add_annotation(text=text_1,font=dict(size=font_size, color=color),
                 x=s['condi_test'] + dic_param[s['gene_test']], y=s['QRm'] + s['QRe'] + y_height,showarrow=False)
 
     def annot_multiple_bar(text,y_height,font_size, col_stats): 
@@ -295,8 +307,14 @@ def add_label_and_test_stat(fig, df):
         col_graph = 1        
         row = ceil(nb_gene/4)          
         df[col_stats] = df[st.session_state[col_stats]].fillna(1).map(significance) 
-        for _, s in df.iterrows():           
-            fig.add_annotation(text=text * s[col_stats],font=dict(size=font_size),
+        for _, s in df.iterrows(): 
+            if s[col_stats] == -1:
+                text_1 = text 
+                color = "#FF0000"   
+            else:
+                text_1 = text * s[col_stats]
+                color = "#000000"             
+            fig.add_annotation(text=text_1,font=dict(size=font_size, color=color),
                 x=s['condi_test'], y=s['QRm'] + s['QRe'] + y_height,showarrow=False, 
                 row =row, col= col_graph)         
                       
@@ -312,15 +330,15 @@ def add_label_and_test_stat(fig, df):
                 st.session_state['error_test_stat'] = ''  
                 if st.session_state['test_stats'] != 'No':   
                     try:                    
-                        if st.session_state['test_stats'] == 'Yes +/★':
-                            fct_name_annot(text="★", y_height=0.55, font_size=13, col_stats="col_test_stat_neg")                      
-                        fct_name_annot(text="<b>+<b>", y_height=0.4, font_size=16, col_stats="col_test_stat_pos")         
+                        if st.session_state['test_stats'] == 'Yes ★/+':
+                            fct_name_annot(text="<b>+<b>", y_height=0.55, font_size=16, col_stats="col_test_stat_neg")                      
+                        fct_name_annot(text="★", y_height=0.4, font_size=13, col_stats="col_test_stat_pos")         
                     except Exception:
                         st.session_state['error_test_stat'] = 'Choose column numeric please'  
                     else:   
-                        legend = f"Statistical test : <br> + : {st.session_state['col_test_stat_pos']}<br>"
-                        if st.session_state['test_stats'] == 'Yes +/★':
-                            legend += f" ★ : {st.session_state['col_test_stat_neg']} <br>"
+                        legend = f"Statistical test : <br> ★ : {st.session_state['col_test_stat_pos']}<br>"
+                        if st.session_state['test_stats'] == 'Yes ★/+':
+                            legend += f" + : {st.session_state['col_test_stat_neg']} <br>"
                         st.session_state['legend_title']  = f"{legend} <br>{st.session_state['x_label']}"
                 else:
                     st.session_state['legend_title']  = st.session_state['x_label']     
@@ -335,7 +353,8 @@ def add_label_and_test_stat(fig, df):
     df['gene_test'] = df['Gene'].cat.codes
     df = df.sort_values(['Gene','condi_test'])
     
-    significance = pd.Series([3,2,1,0], pd.IntervalIndex.from_breaks([0,0.001,0.01,0.05,np.inf],closed = 'left'), name = 'Significance levels')  
+    significance = pd.Series([3,2,1,-1,0], pd.IntervalIndex.from_breaks([0,0.001,0.01,0.05,0.1,np.inf],closed = 'left'),
+                             name = 'Significance levels')  
     
     font_size = st.session_state['size_font']
     # recuperer hauteur pour afficher au dessus des error_y si presente     
