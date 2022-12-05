@@ -99,7 +99,7 @@ def setting_save_plot(container:st.container,graph_type:str):
         container.write(f"path : {st.session_state['save_dir']}") 
     
     if graph_type is None:
-        container.button(label='Generate all genes (png)', on_click=generate_png, args = (container, "test"), disabled=st.session_state['disabled'])
+        container.button(label='Generate all genes (png)', on_click=generate_png, args = (container, "plot_all"), disabled=st.session_state['disabled'])
          
     container.button(label='Generate Graph (png)', on_click=generate_png, args = (container,), disabled=st.session_state['disabled'])
     if st.session_state.get("plot_generate", "") != "":
@@ -132,7 +132,7 @@ def generate_png(container, order=""):
                 st.session_state['nb_plots_generated'] +=1
             st.session_state['plot_generate'] = f"Success : {st.session_state['nb_plots_generated']}  plot(s) generated ! \n Plot is here : {path}"
     
-    if order == 'test':        
+    if order == 'plot_all':        
         df_selec = st.session_state['df_selection']        
         df = st.session_state['df']
         genes = df['Gene'].unique() 
@@ -156,9 +156,19 @@ def generate_png(container, order=""):
                 barmode=st.session_state['bar_type'],   
                 labels={"QRm":st.session_state['y_label'],
                         "Condition": st.session_state['x_label'],
-                        }                                
+                        },
+                width=1000,
+                height=500                              
                 ) 
             add_label_and_test_stat(temp_fig,df[df['Gene'] == i])
+            
+            size_font = st.session_state['size_font']    
+            temp_fig.update_layout(xaxis=(dict(showgrid=True)), showlegend=True,legend_title=st.session_state.get('legend_title','Condition'), 
+                                       legend=dict(font=dict(size=size_font)))
+            temp_fig.update_xaxes(tickfont_size=size_font, title_font_size=size_font)
+            temp_fig.update_yaxes(tickfont_size=size_font, title_font_size=size_font)
+            
+            
             save_image(fig_plot=temp_fig, name=i, multiple=True)
                     
         
